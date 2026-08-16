@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>아무말 대잔치</title>
+<style>
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+                 "Malgun Gothic", sans-serif;
+    background: #fff;
+    color: #333;
+    text-align: center;
+    padding: 24px;
+  }
+  h1 { font-size: 20px; margin: 0; }
+  p  { font-size: 15px; color: #666; margin: 0; line-height: 1.6; }
+  a.button {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 13px 22px;
+    border-radius: 10px;
+    background: #007AFF;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+  }
+</style>
+</head>
+<body>
+  <h1>아무말 대잔치</h1>
+  <p id="msg">플레이 스토어로 이동 중…</p>
+  <a class="button" id="fallback" href="#">플레이 스토어 열기</a>
+
+<script>
+  // 인스타그램/쓰레드 인앱 브라우저는 play.google.com 링크를 자기 웹뷰에서 열어버려서
+  // 플레이 스토어 "앱"으로 넘어가지 않습니다.
+  // market:// 스킴은 인앱 브라우저에서도 안드로이드가 스토어 앱에 넘겨주므로
+  // 이 페이지가 중간에서 한 번 갈아타 줍니다.
+  //
+  // 사용법: app.html?s=instagram  /  app.html?s=threads
+  //   s 값이 Play Console 획득 보고서의 유입경로(utm_source)로 잡힙니다.
+
+  var PACKAGE = 'com.honinbo.NomadWeather';
+
+  var source = (new URLSearchParams(location.search).get('s') || 'direct')
+    .replace(/[^a-zA-Z0-9_-]/g, '')
+    .slice(0, 40);
+
+  var referrer = encodeURIComponent(
+    'utm_source=' + source + '&utm_medium=social'
+  );
+
+  var marketUrl = 'market://details?id=' + PACKAGE + '&referrer=' + referrer;
+  var webUrl = 'https://play.google.com/store/apps/details?id=' + PACKAGE +
+               '&referrer=' + referrer;
+
+  var isAndroid = /android/i.test(navigator.userAgent || '');
+
+  document.getElementById('fallback').href = isAndroid ? marketUrl : webUrl;
+
+  if (isAndroid) {
+    // 스토어 앱으로 바로 넘깁니다.
+    window.location.replace(marketUrl);
+
+    // 스토어 앱이 없는 기기라면 market:// 가 아무것도 안 하므로 웹으로 폴백합니다.
+    setTimeout(function () {
+      window.location.replace(webUrl);
+    }, 1500);
+  } else {
+    document.getElementById('msg').textContent =
+      '아직 안드로이드에서만 사용할 수 있어요. iOS 는 준비 중입니다.';
+    document.getElementById('fallback').textContent = '스토어 페이지 보기';
+  }
+</script>
+</body>
+</html>
